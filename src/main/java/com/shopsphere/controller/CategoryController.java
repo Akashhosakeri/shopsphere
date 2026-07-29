@@ -2,10 +2,16 @@ package com.shopsphere.controller;
 
 import com.shopsphere.entity.Category;
 import com.shopsphere.service.CategoryService;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
@@ -19,8 +25,18 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category creaCategory(@RequestBody Category category){
+    public Category createCategory(@RequestBody Category category){
         return categoryService.createCategory(category);
+    }
+
+    @GetMapping
+    public List<Category> getAllCategories(){
+        return categoryService.getAllCategories();
+    }
+
+    @GetMapping("/{id}")
+    public Category getCategoryById(@PathVariable Long id){
+        return categoryService.getCategoryById(id);
     }
 
 }
