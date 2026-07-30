@@ -4,6 +4,7 @@ import com.shopsphere.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import com.shopsphere.entity.Category;
 import java.util.List;
+import com.shopsphere.exception.CategoryNotFoundException;
 
 @Service
 public class CategoryService {
@@ -23,6 +24,6 @@ public class CategoryService {
 
     public Category getCategoryById(Long id){
         return categoryRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Category not found"));
+                .orElseThrow(()->new CategoryNotFoundException("Category not found"));
     }
 }
