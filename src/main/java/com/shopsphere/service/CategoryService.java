@@ -26,4 +26,22 @@ public class CategoryService {
         return categoryRepository.findById(id)
                 .orElseThrow(()->new CategoryNotFoundException("Category not found"));
     }
+
+    public Category updateCategory(Long id,Category updatedCategory){
+
+        Category existingCategory = categoryRepository.findById(id)
+                .orElseThrow(()-> new CategoryNotFoundException("Category not found"));
+        existingCategory.setName(updatedCategory.getName());
+        existingCategory.setDescription(updatedCategory.getDescription());
+
+        return categoryRepository.save(existingCategory);
+    }
+
+    public void deleteCategory(Long id){
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(()-> new CategoryNotFoundException("Category not found"));
+
+        categoryRepository.delete(category);
+    }
 }
