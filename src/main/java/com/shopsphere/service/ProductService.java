@@ -7,6 +7,8 @@ import com.shopsphere.entity.Product;
 import com.shopsphere.entity.Category;
 import com.shopsphere.repository.CategoryRepository;
 import com.shopsphere.exception.CategoryNotFoundException;
+import com.shopsphere.exception.ProductNotFoundException;
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -23,9 +25,37 @@ public class ProductService {
         Category category = product.getCategory();
 
         Category existingCategory = categoryRepository.findById(category.getId())
-                .orElseThrow(()-> new CategoryNotFoundException("Cetgory not found"));
+                .orElseThrow(()-> new CategoryNotFoundException("Category not found"));
 
         product.setCategory(existingCategory);
         return productRepository.save(product);
     }
+
+    public List<Product> getAllProducts(){
+        return productRepository.findAll();
+    }
+
+    public Product getProductById(Long id){
+        return productRepository.findById(id)
+                .orElseThrow(()->new ProductNotFoundException("Product not found"));
+    }
+
+    public Product updateProduct(Long id, Product updatedProduct) {
+
+    Product existingProduct = productRepository.findById(id)
+            .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+
+    Category category = updatedProduct.getCategory();
+
+    Category existingCategory = categoryRepository.findById(category.getId())
+            .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+
+    existingProduct.setName(updatedProduct.getName());
+    existingProduct.setDescription(updatedProduct.getDescription());
+    existingProduct.setPrice(updatedProduct.getPrice());
+    existingProduct.setStock(updatedProduct.getStock());
+    existingProduct.setCategory(existingCategory);
+
+    return productRepository.save(existingProduct);
+}
 }
