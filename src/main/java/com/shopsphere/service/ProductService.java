@@ -57,5 +57,13 @@ public class ProductService {
     existingProduct.setCategory(existingCategory);
 
     return productRepository.save(existingProduct);
-}
+    }  
+    
+    public void deleteProduct(Long id){
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(()-> new ProductNotFoundException("Product not found"));
+
+        productRepository.delete(product);
+    }
 }
