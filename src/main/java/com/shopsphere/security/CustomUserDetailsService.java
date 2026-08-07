@@ -1,9 +1,12 @@
 package com.shopsphere.security;
 
 import org.springframework.stereotype.Service;
+import com.shopsphere.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
 
 import com.shopsphere.repository.UserRepository;
 
@@ -20,7 +23,19 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
         throws UsernameNotFoundException {
 
-    throw new UnsupportedOperationException("Not implemented yet");
+    User user = userRepository.findByEmail(username)
+                .orElseThrow(()->
+                            new UsernameNotFoundException("User not found"));
+    
+    return org.springframework.security.core.userdetails.User
+            .withUsername(user.getEmail())
+            .password(user.getPassword())
+            .authorities(
+                List.of(
+                    new SimpleGrantedAuthority(user.getRole().name())
+                )
+            )
+            .build();                        
 }
 
 }
