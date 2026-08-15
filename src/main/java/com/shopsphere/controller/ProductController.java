@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import com.shopsphere.dto.ProductRequest;
 
 import com.shopsphere.entity.Product;
 import com.shopsphere.service.ProductService;
@@ -26,8 +28,10 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
-    return productService.createProduct(product);
+    public Product createProduct(
+        @Valid @RequestBody ProductRequest productRequest) {
+
+    return productService.createProduct(productRequest);
     }
 
     @GetMapping
@@ -41,9 +45,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id,
-                             @RequestBody Product updatedProduct) {
-    return productService.updateProduct(id, updatedProduct);
+    public Product updateProduct(
+        @PathVariable Long id,
+        @Valid @RequestBody ProductRequest productRequest) {
+
+        return productService.updateProduct(id, productRequest);
     }
 
     @DeleteMapping("/{id}")

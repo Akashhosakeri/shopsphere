@@ -9,6 +9,7 @@ import com.shopsphere.repository.CategoryRepository;
 import com.shopsphere.exception.CategoryNotFoundException;
 import com.shopsphere.exception.ProductNotFoundException;
 import java.util.List;
+import com.shopsphere.dto.ProductRequest;
 
 @Service
 public class ProductService {
@@ -21,15 +22,23 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Product createProduct(Product product){
-        Category category = product.getCategory();
+    public Product createProduct(ProductRequest productRequest) {
 
-        Category existingCategory = categoryRepository.findById(category.getId())
-                .orElseThrow(()-> new CategoryNotFoundException("Category not found"));
+    Category category = categoryRepository.findById(
+            productRequest.getCategoryId()
+    ).orElseThrow(() ->
+            new CategoryNotFoundException("Category not found"));
 
-        product.setCategory(existingCategory);
-        return productRepository.save(product);
-    }
+    Product product = new Product();
+
+    product.setName(productRequest.getName());
+    product.setDescription(productRequest.getDescription());
+    product.setPrice(productRequest.getPrice());
+    product.setStock(productRequest.getStock());
+    product.setCategory(category);
+
+    return productRepository.save(product);
+}
 
     public List<Product> getAllProducts(){
         return productRepository.findAll();
@@ -40,24 +49,25 @@ public class ProductService {
                 .orElseThrow(()->new ProductNotFoundException("Product not found"));
     }
 
-    public Product updateProduct(Long id, Product updatedProduct) {
+    public Product updateProduct(Long id, ProductRequest productRequest) {
 
     Product existingProduct = productRepository.findById(id)
-            .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+            .orElseThrow(() ->
+                    new ProductNotFoundException("Product not found"));
 
-    Category category = updatedProduct.getCategory();
+    Category existingCategory = categoryRepository.findById(
+            productRequest.getCategoryId()
+    ).orElseThrow(() ->
+            new CategoryNotFoundException("Category not found"));
 
-    Category existingCategory = categoryRepository.findById(category.getId())
-            .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-
-    existingProduct.setName(updatedProduct.getName());
-    existingProduct.setDescription(updatedProduct.getDescription());
-    existingProduct.setPrice(updatedProduct.getPrice());
-    existingProduct.setStock(updatedProduct.getStock());
+    existingProduct.setName(productRequest.getName());
+    existingProduct.setDescription(productRequest.getDescription());
+    existingProduct.setPrice(productRequest.getPrice());
+    existingProduct.setStock(productRequest.getStock());
     existingProduct.setCategory(existingCategory);
 
     return productRepository.save(existingProduct);
-    }  
+    }
     
     public void deleteProduct(Long id){
 
