@@ -7,6 +7,8 @@ import com.shopsphere.exception.UserNotFoundException;
 import com.shopsphere.repository.UserRepository;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.shopsphere.dto.UserRequest;
 import com.shopsphere.dto.UserResponse;
 
 @Service
@@ -33,15 +35,23 @@ public class UserService {
             );
     }
 
-    public UserResponse createUser(User user) {
+    public UserResponse createUser(UserRequest userRequest) {
 
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    User user = new User();
+
+    user.setName(userRequest.getName());
+    user.setPhoneNumber(userRequest.getPhoneNumber());
+    user.setEmail(userRequest.getEmail());
+    user.setPassword(
+            passwordEncoder.encode(userRequest.getPassword())
+    );
+    user.setRole(userRequest.getRole());
+    user.setEnabled(userRequest.getEnabled());
 
     User savedUser = userRepository.save(user);
 
     return toUserResponse(savedUser);
     }
-
     public List<UserResponse> getAllUsers() {
 
     return userRepository.findAll()

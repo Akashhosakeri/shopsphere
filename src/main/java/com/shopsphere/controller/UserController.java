@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import com.shopsphere.dto.UserRequest;
 
 import com.shopsphere.dto.UserResponse;
 import com.shopsphere.entity.User;
@@ -20,8 +22,10 @@ public class UserController {
     }
 
     @PostMapping
-    public UserResponse createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public UserResponse createUser(
+        @Valid @RequestBody UserRequest userRequest) {
+
+    return userService.createUser(userRequest);
     }
 
     @GetMapping
