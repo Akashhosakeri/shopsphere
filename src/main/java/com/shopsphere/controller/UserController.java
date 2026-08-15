@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.shopsphere.dto.UserResponse;
 import com.shopsphere.entity.User;
 import com.shopsphere.service.UserService;
 
@@ -19,22 +20,22 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public UserResponse createUser(@RequestBody User user) {
         return userService.createUser(user);
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponse> getAllUsers() {
+    return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public UserResponse getUserById(@PathVariable Long id) {
+    return userService.getUserById(id);
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id,
+    public UserResponse updateUser(@PathVariable Long id,
                            @RequestBody User updatedUser) {
         return userService.updateUser(id, updatedUser);
     }

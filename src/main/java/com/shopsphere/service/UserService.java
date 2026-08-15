@@ -7,6 +7,7 @@ import com.shopsphere.exception.UserNotFoundException;
 import com.shopsphere.repository.UserRepository;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.shopsphere.dto.UserResponse;
 
 @Service
 public class UserService {
@@ -20,21 +21,45 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User createUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    private UserResponse toUserResponse(User user) {
+
+    return new UserResponse(
+            user.getId(),
+            user.getName(),
+            user.getPhoneNumber(),
+            user.getEmail(),
+            user.getRole().name(),
+            user.getEnabled()
+            );
     }
 
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
+    public UserResponse createUser(User user) {
+
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+    User savedUser = userRepository.save(user);
+
+    return toUserResponse(savedUser);
     }
 
-    public User getUserById(Long id){
-        return userRepository.findById(id)
-                .orElseThrow(()->new UserNotFoundException("User not found"));
+    public List<UserResponse> getAllUsers() {
+
+    return userRepository.findAll()
+            .stream()
+            .map(this::toUserResponse)
+            .toList();
     }
 
-    public User updateUser(Long id,User updatedUser){
+    public UserResponse getUserById(Long id) {
+
+    User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                    new UserNotFoundException("User not found"));
+
+    return toUserResponse(user);
+    }
+
+    public UserResponse updateUser(Long id, User updatedUser){
 
         User existingUser = userRepository.findById(id)
                 .orElseThrow(()->new UserNotFoundException("User not found"));
@@ -46,7 +71,9 @@ public class UserService {
         existingUser.setRole(updatedUser.getRole());
         existingUser.setEnabled(updatedUser.getEnabled());
 
-        return userRepository.save(existingUser);
+        User savedUser = userRepository.save(existingUser);
+
+        return toUserResponse(savedUser);
     }
 
     public void deleteUser(Long id){
