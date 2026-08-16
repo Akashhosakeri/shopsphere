@@ -4,6 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import com.shopsphere.dto.CartItemRequest;
+
 import com.shopsphere.entity.CartItem;
 import com.shopsphere.service.CartItemService;
 
@@ -21,12 +24,12 @@ public class CartItemController {
     public CartItem addItemToCart(
         @PathVariable Long cartId,
         @PathVariable Long productId,
-        @RequestParam Integer quantity) {
+        @Valid @RequestBody CartItemRequest request) {
 
     return cartItemService.addItemToCart(
             cartId,
             productId,
-            quantity
+            request.getQuantity()
     );
     }
 
@@ -39,11 +42,11 @@ public class CartItemController {
     @PutMapping("/{cartItemId}")
     public CartItem updateQuantity(
         @PathVariable Long cartItemId,
-        @RequestParam Integer quantity) {
+        @Valid @RequestBody CartItemRequest request) {
 
     return cartItemService.updateQuantity(
             cartItemId,
-            quantity
+            request.getQuantity()
     );
     }
 
