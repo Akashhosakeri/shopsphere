@@ -6,9 +6,8 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import com.shopsphere.dto.CartItemRequest;
-
-import com.shopsphere.entity.CartItem;
 import com.shopsphere.service.CartItemService;
+import com.shopsphere.dto.CartItemResponse;
 
 @RestController
 @RequestMapping("/api/cart-items")
@@ -21,7 +20,7 @@ public class CartItemController {
     }
 
     @PostMapping("/{cartId}/{productId}")
-    public CartItem addItemToCart(
+    public CartItemResponse addItemToCart(
         @PathVariable Long cartId,
         @PathVariable Long productId,
         @Valid @RequestBody CartItemRequest request) {
@@ -34,13 +33,13 @@ public class CartItemController {
     }
 
     @GetMapping("/{cartId}")
-    public List<CartItem> getCartItems(@PathVariable Long cartId) {
+    public List<CartItemResponse> getCartItems(@PathVariable Long cartId) {
 
     return cartItemService.getCartItems(cartId);
     }
 
     @PutMapping("/{cartItemId}")
-    public CartItem updateQuantity(
+    public CartItemResponse updateQuantity(
         @PathVariable Long cartItemId,
         @Valid @RequestBody CartItemRequest request) {
 

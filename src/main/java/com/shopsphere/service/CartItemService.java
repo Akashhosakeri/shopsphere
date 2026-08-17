@@ -10,6 +10,7 @@ import com.shopsphere.exception.ProductNotFoundException;
 import com.shopsphere.repository.CartItemRepository;
 import com.shopsphere.repository.CartRepository;
 import com.shopsphere.repository.ProductRepository;
+import com.shopsphere.dto.CartItemResponse;
 
 @Service
 public class CartItemService {
@@ -28,7 +29,10 @@ public class CartItemService {
         this.productRepository = productRepository;
     }
 
-    public CartItem addItemToCart(Long cartId, Long productId, Integer quantity) {
+    public CartItemResponse addItemToCart(
+        Long cartId,
+        Long productId,
+        Integer quantity) {
 
     Cart cart = cartRepository.findById(cartId)
             .orElseThrow(() -> new RuntimeException("Cart not found"));
@@ -41,39 +45,51 @@ public class CartItemService {
             .orElse(null);
 
     if (existingItem != null) {
-        existingItem.setQuantity(
-                existingItem.getQuantity() + quantity
-        );
 
-        return cartItemRepository.save(existingItem);
-    }
+    existingItem.setQuantity(
+            existingItem.getQuantity() + quantity
+    );
 
+    return toCartItemResponse(
+            cartItemRepository.save(existingItem)
+    );
+}
     CartItem cartItem = new CartItem(
             cart,
             product,
             quantity
     );
 
-    return cartItemRepository.save(cartItem);
+    return toCartItemResponse(
+        cartItemRepository.save(cartItem)
+);
     }
 
-    public List<CartItem> getCartItems(Long cartId) {
+    public List<CartItemResponse> getCartItems(Long cartId) {
 
     Cart cart = cartRepository.findById(cartId)
             .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-    return cartItemRepository.findByCart(cart);
-    }
+    return cartItemRepository.findByCart(cart)
+            .stream()
+            .map(this::toCartItemResponse)
+            .toList();
+        }
 
-    public CartItem updateQuantity(Long cartItemId, Integer quantity) {
+    public CartItemResponse updateQuantity(
+        Long cartItemId,
+        Integer quantity) {
 
     CartItem cartItem = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new RuntimeException("Cart item not found"));
+            .orElseThrow(() ->
+                    new RuntimeException("Cart item not found"));
 
     cartItem.setQuantity(quantity);
 
-    return cartItemRepository.save(cartItem);
-    }
+    CartItem savedItem = cartItemRepository.save(cartItem);
+
+    return toCartItemResponse(savedItem);
+        }
 
     public void removeItem(Long cartItemId) {
 
@@ -81,5 +97,18 @@ public class CartItemService {
             .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
     cartItemRepository.delete(cartItem);
+    }
+
+    private CartItemResponse toCartItemResponse(CartItem cartItem) {
+
+    Product product = cartItem.getProduct();
+
+    return new CartItemResponse(
+            cartItem.getId(),
+            product.getId(),
+            product.getName(),
+            product.getPrice(),
+            cartItem.getQuantity()
+    );
     }
 }
