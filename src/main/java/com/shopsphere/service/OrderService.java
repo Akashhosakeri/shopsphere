@@ -20,6 +20,7 @@ import com.shopsphere.repository.OrderItemRepository;
 import com.shopsphere.repository.OrderRepository;
 import com.shopsphere.repository.ProductRepository;
 import com.shopsphere.repository.UserRepository;
+import com.shopsphere.dto.OrderResponse;
 
 @Service
 public class OrderService {
@@ -47,7 +48,7 @@ public class OrderService {
         this.userRepository = userRepository;
     }
 
-    public Order placeOrder(Long userId) {
+    public OrderResponse placeOrder(Long userId) {
 
     User user = userRepository.findById(userId)
             .orElseThrow(() ->
@@ -107,25 +108,38 @@ public class OrderService {
 
     cartItemRepository.deleteAll(cartItems);
 
-    return order;
+    return toOrderResponse(order);
     }
 
 
-    public List<Order> getOrdersByUser(Long userId) {
+    public List<OrderResponse> getOrdersByUser(Long userId) {
 
     User user = userRepository.findById(userId)
             .orElseThrow(() ->
                     new UserNotFoundException("User not found"));
 
-    return orderRepository.findByUser(user);
+    return orderRepository.findByUser(user)
+        .stream()
+        .map(this::toOrderResponse)
+        .toList();
     }
 
-    public Order getOrderById(Long orderId) {
+    public OrderResponse getOrderById(Long orderId) {
 
-    return orderRepository.findById(orderId)
-            .orElseThrow(() ->
-                    new RuntimeException("Order not found"));
+    Order order = orderRepository.findById(orderId)
+        .orElseThrow(() ->
+                new RuntimeException("Order not found"));
+
+        return toOrderResponse(order);
     }
     
+    private OrderResponse toOrderResponse(Order order) {
+
+    return new OrderResponse(
+            order.getId(),
+            order.getTotalAmount(),
+            order.getStatus()
+    );
+        }
 
 }
