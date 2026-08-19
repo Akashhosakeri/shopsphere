@@ -11,6 +11,7 @@ import com.shopsphere.repository.CartItemRepository;
 import com.shopsphere.repository.CartRepository;
 import com.shopsphere.repository.ProductRepository;
 import com.shopsphere.dto.CartItemResponse;
+import com.shopsphere.exception.InsufficientStockException;
 
 @Service
 public class CartItemService {
@@ -46,14 +47,29 @@ public class CartItemService {
 
     if (existingItem != null) {
 
-    existingItem.setQuantity(
-            existingItem.getQuantity() + quantity
-    );
+    int newQuantity =
+            existingItem.getQuantity() + quantity;
+
+    if (newQuantity > product.getStock()) {
+        throw new InsufficientStockException(
+                "Insufficient stock. Available stock: "
+                        + product.getStock()
+        );
+    }
+
+    existingItem.setQuantity(newQuantity);
 
     return toCartItemResponse(
             cartItemRepository.save(existingItem)
     );
-}
+    }
+
+    if (quantity > product.getStock()) {
+    throw new InsufficientStockException(
+            "Insufficient stock. Available stock: "
+                    + product.getStock()
+    );
+    }
     CartItem cartItem = new CartItem(
             cart,
             product,
@@ -84,17 +100,28 @@ public class CartItemService {
             .orElseThrow(() ->
                     new RuntimeException("Cart item not found"));
 
+    Product product = cartItem.getProduct();
+
+    if (quantity > product.getStock()) {
+        throw new InsufficientStockException(
+                "Insufficient stock. Available stock: "
+                        + product.getStock()
+        );
+    }
+
     cartItem.setQuantity(quantity);
 
     CartItem savedItem = cartItemRepository.save(cartItem);
 
     return toCartItemResponse(savedItem);
-        }
+}
 
     public void removeItem(Long cartItemId) {
 
     CartItem cartItem = cartItemRepository.findById(cartItemId)
             .orElseThrow(() -> new RuntimeException("Cart item not found"));
+        
+        
 
     cartItemRepository.delete(cartItem);
     }
