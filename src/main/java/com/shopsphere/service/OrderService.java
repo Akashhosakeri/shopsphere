@@ -10,6 +10,7 @@ import com.shopsphere.entity.OrderItem;
 import com.shopsphere.entity.OrderStatus;
 import com.shopsphere.entity.Product;
 import com.shopsphere.entity.User;
+import com.shopsphere.exception.InsufficientStockException;
 import com.shopsphere.exception.UserNotFoundException;
 
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import com.shopsphere.repository.OrderRepository;
 import com.shopsphere.repository.ProductRepository;
 import com.shopsphere.repository.UserRepository;
 import com.shopsphere.dto.OrderResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -48,6 +50,7 @@ public class OrderService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public OrderResponse placeOrder(Long userId) {
 
     User user = userRepository.findById(userId)
@@ -77,6 +80,20 @@ public class OrderService {
 
         totalAmount = totalAmount.add(itemTotal);
     }
+
+    for (CartItem cartItem : cartItems) {
+
+    Product product = cartItem.getProduct();
+
+    if (cartItem.getQuantity() > product.getStock()) {
+        throw new InsufficientStockException(
+                "Insufficient stock for product: "
+                        + product.getName()
+                        + ". Available stock: "
+                        + product.getStock()
+        );
+        }
+        }
 
     Order order = new Order(
             user,
