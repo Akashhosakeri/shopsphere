@@ -149,6 +149,40 @@ public class OrderService {
 
         return toOrderResponse(order);
     }
+
+    @Transactional
+public OrderResponse cancelOrder(Long orderId) {
+
+    Order order = orderRepository.findById(orderId)
+            .orElseThrow(() ->
+                    new RuntimeException("Order not found"));
+
+    if (order.getStatus() != OrderStatus.PENDING) {
+        throw new RuntimeException(
+                "Only pending orders can be cancelled"
+        );
+    }
+
+    List<OrderItem> orderItems =
+            orderItemRepository.findByOrder(order);
+
+    for (OrderItem orderItem : orderItems) {
+
+        Product product = orderItem.getProduct();
+
+        product.setStock(
+                product.getStock() + orderItem.getQuantity()
+        );
+
+        productRepository.save(product);
+    }
+
+    order.setStatus(OrderStatus.CANCELLED);
+
+    Order savedOrder = orderRepository.save(order);
+
+    return toOrderResponse(savedOrder);
+        }
     
     private OrderResponse toOrderResponse(Order order) {
 
