@@ -12,6 +12,8 @@ import com.shopsphere.entity.Product;
 import com.shopsphere.entity.User;
 import com.shopsphere.exception.InsufficientStockException;
 import com.shopsphere.exception.UserNotFoundException;
+import com.shopsphere.exception.OrderNotFoundException;
+import com.shopsphere.exception.CartNotFoundException;
 
 import org.springframework.stereotype.Service;
 
@@ -59,7 +61,7 @@ public class OrderService {
 
     Cart cart = cartRepository.findByUser(user)
             .orElseThrow(() ->
-                    new RuntimeException("Cart not found"));
+                    new CartNotFoundException("Cart not found"));
 
     List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
@@ -145,7 +147,7 @@ public class OrderService {
 
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() ->
-                new RuntimeException("Order not found"));
+                new OrderNotFoundException("Order not found"));
 
         return toOrderResponse(order);
     }
@@ -155,7 +157,7 @@ public OrderResponse cancelOrder(Long orderId) {
 
     Order order = orderRepository.findById(orderId)
             .orElseThrow(() ->
-                    new RuntimeException("Order not found"));
+                    new OrderNotFoundException("Order not found"));
 
     if (order.getStatus() != OrderStatus.PENDING) {
         throw new RuntimeException(

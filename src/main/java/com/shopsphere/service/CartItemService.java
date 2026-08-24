@@ -11,6 +11,7 @@ import com.shopsphere.repository.CartItemRepository;
 import com.shopsphere.repository.CartRepository;
 import com.shopsphere.repository.ProductRepository;
 import com.shopsphere.dto.CartItemResponse;
+import com.shopsphere.exception.CartItemNotFoundException;
 import com.shopsphere.exception.InsufficientStockException;
 
 @Service
@@ -36,7 +37,7 @@ public class CartItemService {
         Integer quantity) {
 
     Cart cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+            .orElseThrow(() -> new CartItemNotFoundException("Cart not found"));
 
     Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException("Product not found"));
@@ -84,7 +85,7 @@ public class CartItemService {
     public List<CartItemResponse> getCartItems(Long cartId) {
 
     Cart cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+            .orElseThrow(() -> new CartItemNotFoundException("Cart not found"));
 
     return cartItemRepository.findByCart(cart)
             .stream()
@@ -98,7 +99,7 @@ public class CartItemService {
 
     CartItem cartItem = cartItemRepository.findById(cartItemId)
             .orElseThrow(() ->
-                    new RuntimeException("Cart item not found"));
+                    new CartItemNotFoundException("Cart item not found"));
 
     Product product = cartItem.getProduct();
 
@@ -119,7 +120,7 @@ public class CartItemService {
     public void removeItem(Long cartItemId) {
 
     CartItem cartItem = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new RuntimeException("Cart item not found"));
+            .orElseThrow(() -> new CartItemNotFoundException("Cart item not found"));
         
         
 

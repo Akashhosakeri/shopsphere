@@ -7,6 +7,7 @@ import com.shopsphere.entity.User;
 import com.shopsphere.exception.UserNotFoundException;
 import com.shopsphere.repository.CartRepository;
 import com.shopsphere.repository.UserRepository;
+import com.shopsphere.exception.CartItemNotFoundException;
 
 @Service
 public class CartService {
@@ -40,7 +41,7 @@ public class CartService {
                     new UserNotFoundException("User not found"));
 
     return cartRepository.findByUser(user)
-            .orElseThrow(() ->
-                    new RuntimeException("Cart not found"));
+        .orElseThrow(() ->
+                new CartItemNotFoundException("Cart not found"));
     }
 }
