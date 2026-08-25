@@ -29,10 +29,12 @@ public class OrderController {
     return orderService.getOrdersByUser(userId);
     }
 
-    @GetMapping("/{orderId}")
-    public OrderResponse getOrderById(@PathVariable Long orderId) {
+    @GetMapping("/{userId}/{orderId}")
+    public OrderResponse getOrderById(
+        @PathVariable Long userId,
+        @PathVariable Long orderId) {
 
-    return orderService.getOrderById(orderId);
+    return orderService.getOrderById(userId, orderId);
     }
 
     @PutMapping("/{orderId}/cancel")

@@ -143,14 +143,22 @@ public class OrderService {
         .toList();
     }
 
-    public OrderResponse getOrderById(Long orderId) {
+    public OrderResponse getOrderById(Long userId, Long orderId) {
+
+    User user = userRepository.findById(userId)
+            .orElseThrow(() ->
+                    new UserNotFoundException("User not found"));
 
     Order order = orderRepository.findById(orderId)
-        .orElseThrow(() ->
-                new OrderNotFoundException("Order not found"));
+            .orElseThrow(() ->
+                    new OrderNotFoundException("Order not found"));
 
-        return toOrderResponse(order);
+    if (!order.getUser().getId().equals(user.getId())) {
+        throw new OrderNotFoundException("Order not found");
     }
+
+    return toOrderResponse(order);
+        }
 
     @Transactional
 public OrderResponse cancelOrder(Long orderId) {
