@@ -55,152 +55,158 @@ public class OrderService {
     @Transactional
     public OrderResponse placeOrder(Long userId) {
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new UserNotFoundException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
 
-    Cart cart = cartRepository.findByUser(user)
-            .orElseThrow(() ->
-                    new CartNotFoundException("Cart not found"));
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() ->
+                        new CartNotFoundException("Cart not found"));
 
-    List<CartItem> cartItems = cartItemRepository.findByCart(cart);
+        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
-    if (cartItems.isEmpty()) {
-        throw new RuntimeException("Cart is empty");
-    }
+        if (cartItems.isEmpty()) {
+            throw new RuntimeException("Cart is empty");
+        }
 
-    BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
 
-    for (CartItem cartItem : cartItems) {
+        for (CartItem cartItem : cartItems) {
 
-        Product product = cartItem.getProduct();
+            Product product = cartItem.getProduct();
 
-        BigDecimal itemTotal = product.getPrice()
-                .multiply(
-                        BigDecimal.valueOf(cartItem.getQuantity())
+            BigDecimal itemTotal = product.getPrice()
+                    .multiply(
+                            BigDecimal.valueOf(cartItem.getQuantity())
+                    );
+
+            totalAmount = totalAmount.add(itemTotal);
+        }
+
+        for (CartItem cartItem : cartItems) {
+
+            Product product = cartItem.getProduct();
+
+            if (cartItem.getQuantity() > product.getStock()) {
+                throw new InsufficientStockException(
+                        "Insufficient stock for product: "
+                                + product.getName()
+                                + ". Available stock: "
+                                + product.getStock()
                 );
-
-        totalAmount = totalAmount.add(itemTotal);
-    }
-
-    for (CartItem cartItem : cartItems) {
-
-    Product product = cartItem.getProduct();
-
-    if (cartItem.getQuantity() > product.getStock()) {
-        throw new InsufficientStockException(
-                "Insufficient stock for product: "
-                        + product.getName()
-                        + ". Available stock: "
-                        + product.getStock()
-        );
-        }
+            }
         }
 
-    Order order = new Order(
-            user,
-            totalAmount,
-            OrderStatus.PENDING
-    );
-
-    order = orderRepository.save(order);
-
-    for (CartItem cartItem : cartItems) {
-
-        Product product = cartItem.getProduct();
-
-        OrderItem orderItem = new OrderItem(
-                order,
-                product,
-                cartItem.getQuantity(),
-                product.getPrice()
+        Order order = new Order(
+                user,
+                totalAmount,
+                OrderStatus.PENDING
         );
 
-        orderItemRepository.save(orderItem);
+        order = orderRepository.save(order);
 
-        product.setStock(
-                product.getStock() - cartItem.getQuantity()
-        );
+        for (CartItem cartItem : cartItems) {
 
-        productRepository.save(product);
+            Product product = cartItem.getProduct();
+
+            OrderItem orderItem = new OrderItem(
+                    order,
+                    product,
+                    cartItem.getQuantity(),
+                    product.getPrice()
+            );
+
+            orderItemRepository.save(orderItem);
+
+            product.setStock(
+                    product.getStock() - cartItem.getQuantity()
+            );
+
+            productRepository.save(product);
+        }
+
+        cartItemRepository.deleteAll(cartItems);
+
+        return toOrderResponse(order);
     }
-
-    cartItemRepository.deleteAll(cartItems);
-
-    return toOrderResponse(order);
-    }
-
 
     public List<OrderResponse> getOrdersByUser(Long userId) {
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new UserNotFoundException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
 
-    return orderRepository.findByUser(user)
-        .stream()
-        .map(this::toOrderResponse)
-        .toList();
+        return orderRepository.findByUser(user)
+                .stream()
+                .map(this::toOrderResponse)
+                .toList();
     }
 
     public OrderResponse getOrderById(Long userId, Long orderId) {
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new UserNotFoundException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
 
-    Order order = orderRepository.findById(orderId)
-            .orElseThrow(() ->
-                    new OrderNotFoundException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new OrderNotFoundException("Order not found"));
 
-    if (!order.getUser().getId().equals(user.getId())) {
-        throw new OrderNotFoundException("Order not found");
-    }
-
-    return toOrderResponse(order);
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new OrderNotFoundException("Order not found");
         }
+
+        return toOrderResponse(order);
+    }
 
     @Transactional
-public OrderResponse cancelOrder(Long orderId) {
+    public OrderResponse cancelOrder(Long userId, Long orderId) {
 
-    Order order = orderRepository.findById(orderId)
-            .orElseThrow(() ->
-                    new OrderNotFoundException("Order not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
 
-    if (order.getStatus() != OrderStatus.PENDING) {
-        throw new RuntimeException(
-                "Only pending orders can be cancelled"
-        );
-    }
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new OrderNotFoundException("Order not found"));
 
-    List<OrderItem> orderItems =
-            orderItemRepository.findByOrder(order);
-
-    for (OrderItem orderItem : orderItems) {
-
-        Product product = orderItem.getProduct();
-
-        product.setStock(
-                product.getStock() + orderItem.getQuantity()
-        );
-
-        productRepository.save(product);
-    }
-
-    order.setStatus(OrderStatus.CANCELLED);
-
-    Order savedOrder = orderRepository.save(order);
-
-    return toOrderResponse(savedOrder);
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new OrderNotFoundException("Order not found");
         }
-    
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException(
+                    "Only pending orders can be cancelled"
+            );
+        }
+
+        List<OrderItem> orderItems =
+                orderItemRepository.findByOrder(order);
+
+        for (OrderItem orderItem : orderItems) {
+
+            Product product = orderItem.getProduct();
+
+            product.setStock(
+                    product.getStock() + orderItem.getQuantity()
+            );
+
+            productRepository.save(product);
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        Order savedOrder = orderRepository.save(order);
+
+        return toOrderResponse(savedOrder);
+    }
+
     private OrderResponse toOrderResponse(Order order) {
 
-    return new OrderResponse(
-            order.getId(),
-            order.getTotalAmount(),
-            order.getStatus()
-    );
-        }
-
+        return new OrderResponse(
+                order.getId(),
+                order.getTotalAmount(),
+                order.getStatus()
+        );
+    }
 }

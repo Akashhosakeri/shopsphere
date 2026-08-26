@@ -37,10 +37,11 @@ public class OrderController {
     return orderService.getOrderById(userId, orderId);
     }
 
-    @PutMapping("/{orderId}/cancel")
+    @PutMapping("/{userId}/{orderId}/cancel")
     public OrderResponse cancelOrder(
+        @PathVariable Long userId,
         @PathVariable Long orderId) {
 
-    return orderService.cancelOrder(orderId);
+    return orderService.cancelOrder(userId, orderId);
     }
 }
