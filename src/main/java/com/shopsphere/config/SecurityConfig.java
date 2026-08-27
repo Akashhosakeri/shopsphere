@@ -32,14 +32,56 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth ->
+    http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .authorizeHttpRequests(auth ->
             auth
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // Public product/category read APIs
+                .requestMatchers(
+        org.springframework.http.HttpMethod.GET,
+        "/api/products",
+        "/api/products/**").authenticated()
+
+                .requestMatchers(
+    org.springframework.http.HttpMethod.GET,
+    "/api/categories",
+    "/api/categories/**").authenticated()
+
+                // Admin-only product operations
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.POST,
+                        "/api/products/**").hasRole("ADMIN")
+
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.PUT,
+                        "/api/products/**").hasRole("ADMIN")
+
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.DELETE,
+                        "/api/products/**").hasRole("ADMIN")
+
+                // Admin-only category operations
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.POST,
+                        "/api/categories/**").hasRole("ADMIN")
+
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.PUT,
+                        "/api/categories/**").hasRole("ADMIN")
+
+                .requestMatchers(
+                        org.springframework.http.HttpMethod.DELETE,
+                        "/api/categories/**").hasRole("ADMIN")
+
+                // Admin-only user management
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
+
+                // Everything else requires login
                 .anyRequest().authenticated()
         )
         .addFilterBefore(
