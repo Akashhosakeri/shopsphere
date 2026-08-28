@@ -2,8 +2,10 @@ package com.shopsphere.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.shopsphere.dto.AddressResponse;
 import com.shopsphere.entity.Address;
 import com.shopsphere.service.AddressService;
 
@@ -17,17 +19,23 @@ public class AddressController {
         this.addressService = addressService;
     }
 
-    @PostMapping("/{userId}")
-    public Address createAddress(
-        @PathVariable Long userId,
-        @RequestBody Address address) {
+    @PostMapping
+    public AddressResponse createAddress(
+            Authentication authentication,
+            @RequestBody Address address) {
 
-    return addressService.createAddress(userId, address);
+        return addressService.createAddress(
+                authentication.getName(),
+                address
+        );
     }
 
-    @GetMapping("/{userId}")
-    public List<Address> getUserAddresses(@PathVariable Long userId) {
+    @GetMapping
+    public List<AddressResponse> getUserAddresses(
+            Authentication authentication) {
 
-    return addressService.getUserAddresses(userId);
+        return addressService.getUserAddresses(
+                authentication.getName()
+        );
     }
 }
