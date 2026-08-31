@@ -1,6 +1,7 @@
 package com.shopsphere.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.shopsphere.entity.OrderStatus;
 
@@ -9,6 +10,7 @@ public class OrderResponse {
     private Long id;
     private BigDecimal totalAmount;
     private OrderStatus status;
+    private List<OrderItemResponse> items;
 
     public OrderResponse() {
     }
@@ -16,11 +18,13 @@ public class OrderResponse {
     public OrderResponse(
             Long id,
             BigDecimal totalAmount,
-            OrderStatus status) {
+            OrderStatus status,
+            List<OrderItemResponse> items) {
 
         this.id = id;
         this.totalAmount = totalAmount;
         this.status = status;
+        this.items = items;
     }
 
     public Long getId() {
@@ -45,5 +49,13 @@ public class OrderResponse {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public List<OrderItemResponse> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemResponse> items) {
+        this.items = items;
     }
 }

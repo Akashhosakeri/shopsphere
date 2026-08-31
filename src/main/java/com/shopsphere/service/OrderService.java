@@ -14,6 +14,7 @@ import com.shopsphere.exception.InsufficientStockException;
 import com.shopsphere.exception.UserNotFoundException;
 import com.shopsphere.exception.OrderNotFoundException;
 import com.shopsphere.exception.CartNotFoundException;
+import com.shopsphere.dto.OrderItemResponse;
 
 import org.springframework.stereotype.Service;
 
@@ -203,10 +204,22 @@ public class OrderService {
 
     private OrderResponse toOrderResponse(Order order) {
 
-        return new OrderResponse(
-                order.getId(),
-                order.getTotalAmount(),
-                order.getStatus()
-        );
+    List<OrderItemResponse> items =
+            orderItemRepository.findByOrder(order)
+                    .stream()
+                    .map(item -> new OrderItemResponse(
+                            item.getProduct().getId(),
+                            item.getProduct().getName(),
+                            item.getQuantity(),
+                            item.getPrice()
+                    ))
+                    .toList();
+
+    return new OrderResponse(
+            order.getId(),
+            order.getTotalAmount(),
+            order.getStatus(),
+            items
+    );
     }
 }
