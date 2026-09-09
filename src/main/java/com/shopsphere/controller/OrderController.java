@@ -2,6 +2,7 @@ package com.shopsphere.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.shopsphere.service.OrderService;
@@ -17,31 +18,43 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping("/{userId}")
-    public OrderResponse placeOrder(@PathVariable Long userId) {
+    @PostMapping
+    public OrderResponse placeOrder(
+            Authentication authentication) {
 
-    return orderService.placeOrder(userId);
+        return orderService.placeOrder(
+                authentication.getName()
+        );
     }
 
-    @GetMapping("/user/{userId}")
-    public List<OrderResponse> getOrdersByUser(@PathVariable Long userId) {
+    @GetMapping
+    public List<OrderResponse> getOrdersByUser(
+            Authentication authentication) {
 
-    return orderService.getOrdersByUser(userId);
+        return orderService.getOrdersByUser(
+                authentication.getName()
+        );
     }
 
-    @GetMapping("/{userId}/{orderId}")
+    @GetMapping("/{orderId}")
     public OrderResponse getOrderById(
-        @PathVariable Long userId,
-        @PathVariable Long orderId) {
+            Authentication authentication,
+            @PathVariable Long orderId) {
 
-    return orderService.getOrderById(userId, orderId);
+        return orderService.getOrderById(
+                authentication.getName(),
+                orderId
+        );
     }
 
-    @PutMapping("/{userId}/{orderId}/cancel")
+    @PutMapping("/{orderId}/cancel")
     public OrderResponse cancelOrder(
-        @PathVariable Long userId,
-        @PathVariable Long orderId) {
+            Authentication authentication,
+            @PathVariable Long orderId) {
 
-    return orderService.cancelOrder(userId, orderId);
+        return orderService.cancelOrder(
+                authentication.getName(),
+                orderId
+        );
     }
 }

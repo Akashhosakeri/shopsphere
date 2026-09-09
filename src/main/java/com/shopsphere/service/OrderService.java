@@ -15,8 +15,10 @@ import com.shopsphere.exception.UserNotFoundException;
 import com.shopsphere.exception.OrderNotFoundException;
 import com.shopsphere.exception.CartNotFoundException;
 import com.shopsphere.dto.OrderItemResponse;
+import com.shopsphere.dto.OrderResponse;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.shopsphere.repository.CartItemRepository;
 import com.shopsphere.repository.CartRepository;
@@ -24,8 +26,6 @@ import com.shopsphere.repository.OrderItemRepository;
 import com.shopsphere.repository.OrderRepository;
 import com.shopsphere.repository.ProductRepository;
 import com.shopsphere.repository.UserRepository;
-import com.shopsphere.dto.OrderResponse;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -54,9 +54,9 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse placeOrder(Long userId) {
+    public OrderResponse placeOrder(String email) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
@@ -89,6 +89,7 @@ public class OrderService {
             Product product = cartItem.getProduct();
 
             if (cartItem.getQuantity() > product.getStock()) {
+
                 throw new InsufficientStockException(
                         "Insufficient stock for product: "
                                 + product.getName()
@@ -120,7 +121,8 @@ public class OrderService {
             orderItemRepository.save(orderItem);
 
             product.setStock(
-                    product.getStock() - cartItem.getQuantity()
+                    product.getStock()
+                            - cartItem.getQuantity()
             );
 
             productRepository.save(product);
@@ -131,9 +133,9 @@ public class OrderService {
         return toOrderResponse(order);
     }
 
-    public List<OrderResponse> getOrdersByUser(Long userId) {
+    public List<OrderResponse> getOrdersByUser(String email) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
@@ -143,9 +145,11 @@ public class OrderService {
                 .toList();
     }
 
-    public OrderResponse getOrderById(Long userId, Long orderId) {
+    public OrderResponse getOrderById(
+            String email,
+            Long orderId) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
@@ -161,9 +165,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse cancelOrder(Long userId, Long orderId) {
+    public OrderResponse cancelOrder(
+            String email,
+            Long orderId) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException("User not found"));
 
@@ -176,6 +182,7 @@ public class OrderService {
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
+
             throw new RuntimeException(
                     "Only pending orders can be cancelled"
             );
@@ -189,7 +196,8 @@ public class OrderService {
             Product product = orderItem.getProduct();
 
             product.setStock(
-                    product.getStock() + orderItem.getQuantity()
+                    product.getStock()
+                            + orderItem.getQuantity()
             );
 
             productRepository.save(product);
@@ -197,29 +205,30 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
 
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder =
+                orderRepository.save(order);
 
         return toOrderResponse(savedOrder);
     }
 
     private OrderResponse toOrderResponse(Order order) {
 
-    List<OrderItemResponse> items =
-            orderItemRepository.findByOrder(order)
-                    .stream()
-                    .map(item -> new OrderItemResponse(
-                            item.getProduct().getId(),
-                            item.getProduct().getName(),
-                            item.getQuantity(),
-                            item.getPrice()
-                    ))
-                    .toList();
+        List<OrderItemResponse> items =
+                orderItemRepository.findByOrder(order)
+                        .stream()
+                        .map(item -> new OrderItemResponse(
+                                item.getProduct().getId(),
+                                item.getProduct().getName(),
+                                item.getQuantity(),
+                                item.getPrice()
+                        ))
+                        .toList();
 
-    return new OrderResponse(
-            order.getId(),
-            order.getTotalAmount(),
-            order.getStatus(),
-            items
-    );
+        return new OrderResponse(
+                order.getId(),
+                order.getTotalAmount(),
+                order.getStatus(),
+                items
+        );
     }
 }
