@@ -10,6 +10,7 @@ import com.shopsphere.exception.CategoryNotFoundException;
 import com.shopsphere.exception.ProductNotFoundException;
 import java.util.List;
 import com.shopsphere.dto.ProductRequest;
+import java.math.BigDecimal;
 
 @Service
 public class ProductService {
@@ -76,4 +77,17 @@ public class ProductService {
 
         productRepository.delete(product);
     }
+    public List<Product> searchProducts(String name) {
+    return productRepository.findByNameContainingIgnoreCase(name);
+}
+
+public List<Product> filterProductsByPrice(
+        BigDecimal minPrice,
+        BigDecimal maxPrice) {
+
+    return productRepository.findByPriceBetween(
+            minPrice,
+            maxPrice
+    );
+}
 }

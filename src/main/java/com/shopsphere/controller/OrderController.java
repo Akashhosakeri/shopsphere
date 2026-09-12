@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.shopsphere.service.OrderService;
 import com.shopsphere.dto.OrderResponse;
+import com.shopsphere.dto.OrderStatusRequest;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -55,6 +56,19 @@ public class OrderController {
         return orderService.cancelOrder(
                 authentication.getName(),
                 orderId
+        );
+    }
+
+    @PutMapping("/{orderId}/status")
+    public OrderResponse updateOrderStatus(
+            Authentication authentication,
+            @PathVariable Long orderId,
+            @RequestBody OrderStatusRequest request) {
+
+        return orderService.updateOrderStatus(
+                authentication.getName(),
+                orderId,
+                request.getStatus()
         );
     }
 }

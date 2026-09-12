@@ -211,6 +211,63 @@ public class OrderService {
         return toOrderResponse(savedOrder);
     }
 
+    @Transactional
+public OrderResponse updateOrderStatus(
+        String email,
+        Long orderId,
+        OrderStatus newStatus) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new UserNotFoundException("User not found"));
+
+    // For now, this confirms the authenticated user exists.
+    // ROLE_ADMIN authorization will be handled by Spring Security.
+    Order order = orderRepository.findById(orderId)
+            .orElseThrow(() ->
+                    new OrderNotFoundException("Order not found"));
+
+    // Cancel only from PENDING state
+    if (newStatus == OrderStatus.CANCELLED) {
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException(
+                    "Only pending orders can be cancelled"
+            );
+        }
+
+        List<OrderItem> orderItems =
+                orderItemRepository.findByOrder(order);
+
+        for (OrderItem orderItem : orderItems) {
+
+            Product product = orderItem.getProduct();
+
+            product.setStock(
+                    product.getStock()
+                            + orderItem.getQuantity()
+            );
+
+            productRepository.save(product);
+        }
+    }
+
+    // Prevent changing a cancelled order back to another status
+    if (order.getStatus() == OrderStatus.CANCELLED
+            && newStatus != OrderStatus.CANCELLED) {
+
+        throw new RuntimeException(
+                "Cancelled orders cannot be changed"
+        );
+    }
+
+    order.setStatus(newStatus);
+
+    Order savedOrder = orderRepository.save(order);
+
+    return toOrderResponse(savedOrder);
+}
+
     private OrderResponse toOrderResponse(Order order) {
 
         List<OrderItemResponse> items =

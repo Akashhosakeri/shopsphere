@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
-import com.shopsphere.dto.ProductRequest;
+import java.math.BigDecimal;
 
+import jakarta.validation.Valid;
+
+import com.shopsphere.dto.ProductRequest;
 import com.shopsphere.entity.Product;
 import com.shopsphere.service.ProductService;
 
@@ -29,35 +32,56 @@ public class ProductController {
 
     @PostMapping
     public Product createProduct(
-        @Valid @RequestBody ProductRequest productRequest) {
+            @Valid @RequestBody ProductRequest productRequest) {
 
-    return productService.createProduct(productRequest);
+        return productService.createProduct(productRequest);
     }
 
     @GetMapping
-    public List<Product> getAllProducts(){
+    public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
 
+    // Search products
+    @GetMapping("/search")
+    public List<Product> searchProducts(
+            @RequestParam String name) {
+
+        return productService.searchProducts(name);
+    }
+
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id){
+    public Product getProductById(
+            @PathVariable Long id) {
+
         return productService.getProductById(id);
     }
 
     @PutMapping("/{id}")
     public Product updateProduct(
-        @PathVariable Long id,
-        @Valid @RequestBody ProductRequest productRequest) {
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest productRequest) {
 
         return productService.updateProduct(id, productRequest);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProductById(@PathVariable Long id){
+    public ResponseEntity<Void> deleteProductById(
+            @PathVariable Long id) {
 
         productService.deleteProduct(id);
 
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/filter")
+    public List<Product> filterProductsByPrice(
+        @RequestParam BigDecimal minPrice,
+        @RequestParam BigDecimal maxPrice) {
+
+    return productService.filterProductsByPrice(
+            minPrice,
+            maxPrice
+    );
+    }
 }
